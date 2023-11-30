@@ -42,7 +42,7 @@ mongoose
 const allowedOrigins = [
   "http://localhost:3001",
   "https://alluring-steel.surge.sh",
-  "https://blue-statement.surge.sh/",
+  "https://blue-statement.surge.sh",
 ];
 
 const app = express();
