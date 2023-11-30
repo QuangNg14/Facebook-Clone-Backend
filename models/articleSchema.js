@@ -24,9 +24,24 @@ const articleSchema = new mongoose.Schema({
   },
   comments: [
     {
-      type: String,
+      commenter: {
+        type: String,
+        required: true,
+      },
+      text: {
+        type: String,
+        required: true,
+      },
+      date: {
+        type: Date,
+        default: Date.now,
+      },
     },
   ],
+  image: {
+    type: String,
+    default: "",
+  },
 });
 
 module.exports = mongoose.model("Article", articleSchema);

@@ -5,10 +5,54 @@ const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
 const stream = require("stream");
 const uploadImage = require("../uploadCloudinary");
+const mongoose = require("mongoose");
 
 const User = require("../models/userSchema");
 const UserProfile = require("../models/userProfileSchema");
 require("dotenv").config();
+
+router.get("/current_user", (req, res) => {
+  if (req.isAuthenticated()) {
+    res.json({
+      isAuthenticated: true,
+      user: {
+        username: req.user.username,
+        email: req.user.email,
+      },
+    });
+  } else {
+    res.json({ isAuthenticated: false });
+  }
+});
+
+router.get("/all-users", isLoggedIn, async (req, res) => {
+  try {
+    const currentUserId = req.user._id;
+
+    const users = await UserProfile.find({ user: { $ne: currentUserId } });
+
+    res.json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).send("Server error");
+  }
+});
+
+router.get("/userprofile/:username", async (req, res) => {
+  const username = req.params.username;
+
+  try {
+    const userProfile = await UserProfile.findOne({ username: username });
+    if (userProfile) {
+      res.json(userProfile);
+    } else {
+      res.status(404).send("User not found");
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
+});
 
 // HEADLINE
 router.get("/headline/:user?", isLoggedIn, async (req, res) => {
@@ -57,6 +101,32 @@ router.put("/headline", isLoggedIn, async (req, res) => {
 
 // FOLLOWERS
 
+router.get("/followed-users/:user?", isLoggedIn, async (req, res) => {
+  try {
+    const username = req.params.user || req.user.username;
+    const userProfile = await UserProfile.findOne(
+      { username: username },
+      "followedUsers"
+    ).exec();
+
+    if (!userProfile) {
+      return res.status(404).send({ message: "User not found" });
+    }
+
+    // Find all user profiles that are being followed by the user
+    const followedUserProfiles = await UserProfile.find({
+      user: { $in: userProfile.followedUsers },
+    }).exec();
+
+    res.json({
+      username: userProfile.username,
+      followedUsers: followedUserProfiles.map((profile) => profile.toJSON()), // Assuming you want to send the entire profile
+    });
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
 router.get("/following/:user?", isLoggedIn, async (req, res) => {
   try {
     const username = req.params.user || req.user.username;
@@ -80,9 +150,7 @@ router.get("/following/:user?", isLoggedIn, async (req, res) => {
 
 router.put("/following/:user?", isLoggedIn, async (req, res) => {
   try {
-    console.log(req.params);
     const userToAddUsername = req.params.user;
-    console.log(userToAddUsername);
     const userToAdd = await User.findOne(
       {
         username: userToAddUsername,
@@ -118,7 +186,7 @@ router.put("/following/:user?", isLoggedIn, async (req, res) => {
 
 router.delete("/following/:user?", isLoggedIn, async (req, res) => {
   try {
-    const userToRemove = req.params.user;
+    const userToRemoveId = req.params.user;
     const userProfile = await UserProfile.findOne(
       { user: req.user._id },
       "followedUsers"
@@ -129,7 +197,7 @@ router.delete("/following/:user?", isLoggedIn, async (req, res) => {
     }
 
     userProfile.followedUsers = userProfile.followedUsers.filter(
-      (username) => username !== userToRemove
+      (userId) => userId != userToRemoveId
     );
     await userProfile.save();
 

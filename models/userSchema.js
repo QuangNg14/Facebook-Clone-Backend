@@ -6,6 +6,8 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: [true, "Username is required"],
   },
+  authType: { type: String, default: "local" },
+  thirdPartyId: String,
 });
 
 UserSchema.plugin(passportLocalMongoose, {

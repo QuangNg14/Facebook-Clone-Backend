@@ -77,6 +77,16 @@ function postImage(req, res) {
   );
 }
 
+function uploadAvatar(req, res) {
+  res
+    .status(200)
+    .json({ message: "Avatar updated successfully", url: req.fileurl });
+}
+
+function setup(app) {
+  app.put("/avatar", uploadImage("avatar"), uploadAvatar);
+}
+
 function getImage(req, res) {
   // This form has two parts: image and title
   // the title is used as the name of the uploaded file

@@ -53,9 +53,11 @@ router.post("/register", async (req, res) => {
               console.error("Login after registration error:", loginErr);
               return res.status(500).send(loginErr.message);
             }
-            res
-              .status(201)
-              .json({ username: user.username, result: "success" });
+            res.status(201).json({
+              username: user.username,
+              result: "success",
+              id: user._id,
+            });
           });
         })
         .catch((err) => {
@@ -126,12 +128,43 @@ router.put("/logout", (req, res) => {
   return res.json({ result: "logout success" });
 });
 
-router.get("/dashboard", (req, res) => {
+router.get("/main", (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).send("You must be logged in to view this page");
   }
-  res.send("Welcome to your dashboard, " + req.user.email);
+  // res.send("Welcome to your dashboard, " + req.user.email);
+  res.redirect("http://localhost:3001/main");
 });
+
+router.get(
+  "/auth/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+router.get(
+  "/auth/google/callback",
+  passport.authenticate("google", { failureRedirect: "/login" }),
+  (req, res) => {
+    if (req.user) {
+      const mySecretMessage = "This is secret message";
+      const sessionKey = md5(
+        mySecretMessage + new Date().getTime() + req.user.username
+      );
+      sessionUser[sessionKey] = req.user;
+
+      res.cookie(cookieKey, sessionKey, {
+        maxAge: 3600 * 1000,
+        httpOnly: true,
+        sameSite: "None",
+        secure: true,
+      });
+
+      res.redirect("http://localhost:3001/main");
+    } else {
+      res.redirect("http://localhost:3001/login");
+    }
+  }
+);
 
 module.exports.router = router;
 module.exports.isLoggedIn = isLoggedIn;
