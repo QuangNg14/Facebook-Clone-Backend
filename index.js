@@ -43,6 +43,7 @@ const allowedOrigins = [
   "http://localhost:3001",
   "https://alluring-steel.surge.sh",
   "https://blue-statement.surge.sh",
+  "https://ricecomp431app-5b7591b01f3b.herokuapp.com",
 ];
 
 const app = express();
