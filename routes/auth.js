@@ -133,7 +133,7 @@ router.get("/main", (req, res) => {
     return res.status(401).send("You must be logged in to view this page");
   }
   // res.send("Welcome to your dashboard, " + req.user.email);
-  res.redirect("http://localhost:3001/main");
+  res.redirect("https://blue-statement.surge.sh/main");
 });
 
 router.get(
@@ -159,9 +159,9 @@ router.get(
         secure: true,
       });
 
-      res.redirect("http://localhost:3001/main");
+      res.redirect("https://blue-statement.surge.sh/main");
     } else {
-      res.redirect("http://localhost:3001/login");
+      res.redirect("https://blue-statement.surge.sh/login");
     }
   }
 );
